@@ -1,3 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">My Application</string>
+    <string name="app_name">SheepDistressApp</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="recent_alerts">Recent Alerts</string>
+    <string name="alerts_history">Alerts History</string>
+    <string name="more">More</string>
+    <string name="acknowledge_alert">Acknowledge Alert</string>
+    <string name="report_false_positive">Report failure (false positive)</string>
+    <string name="warning">Warning:</string>
+    <string name="sensor_activated">Sensor no. %d activated!</string>
+    <string name="countermeasures_deployed">Countermeasures deployed.</string>
 </resources>
