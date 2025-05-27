@@ -42,6 +42,7 @@
         android:layout_marginBottom="16dp">
 
         <TextView
+            android:id="@+id/sensor_number"
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:background="@drawable/sensor_number_background"
@@ -59,6 +60,7 @@
             android:orientation="vertical">
 
             <TextView
+                android:id="@+id/alert_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Sensor no. 2 is being activated!"
@@ -67,6 +69,7 @@
                 android:textColor="@color/black" />
 
             <TextView
+                android:id="@+id/alert_description"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Countermeasures are being deployed this very moment..."

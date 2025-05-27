@@ -3,11 +3,13 @@ package com.example.myapplication;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.Menu;
+import android.os.Handler;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
@@ -15,8 +17,10 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import com.google.android.material.navigation.NavigationView;
-import java.util.ArrayList;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -26,19 +30,30 @@ public class MainActivity extends AppCompatActivity {
     private AlertAdapter alertAdapter;
     private List<Alert> recentAlerts;
     private Button moreButton;
+    private AlertManager alertManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // Initialize AlertManager
+        alertManager = AlertManager.getInstance(this);
+
         setupToolbar();
         setupDrawer();
         setupViews();
-        setupDummyData();
+        loadRecentAlerts();
 
         // Simulate receiving a new alert after 3 seconds
-        new android.os.Handler().postDelayed(() -> showNewAlert(), 3000);
+        Log.d("MainActivity", "Setting up delayed alert...");
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                Log.d("MainActivity", "Showing simulated alert now...");
+                simulateNewAlert();
+            }
+        }, 3000);
     }
 
     private void setupToolbar() {
@@ -76,21 +91,28 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void setupDummyData() {
-        recentAlerts = new ArrayList<>();
-        recentAlerts.add(new Alert(1, "Sensor no. 1 activated!", "Countermeasures deployed.", "2 hours ago", Alert.STATE_GOOD));
-        recentAlerts.add(new Alert(4, "Sensor no. 4 activated!", "Countermeasures deployed.", "4 hours ago", Alert.STATE_GOOD));
-        recentAlerts.add(new Alert(2, "Sensor no. 2 activated!", "Reported as false positive.", "5 hours ago", Alert.STATE_BAD));
-        recentAlerts.add(new Alert(4, "Sensor no. 4 activated!", "Countermeasures deployed.", "11 hours ago", Alert.STATE_GOOD));
-
+    private void loadRecentAlerts() {
+        recentAlerts = alertManager.getRecentAlerts(6);
         alertAdapter = new AlertAdapter(this, recentAlerts);
         alertsListView.setAdapter(alertAdapter);
     }
 
-    private void showNewAlert() {
+    // Public method that can be called by AlertManager
+    public void showAlertConfirmationDialog(int sensorNumber, String title, String description, String timestamp, AlertManager.AlertResponseCallback callback) {
+        Log.d("MainActivity", "Showing alert dialog for sensor: " + sensorNumber);
+
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_new_alert, null);
         builder.setView(dialogView);
+
+        // Update dialog content with provided data
+        TextView sensorNumberView = dialogView.findViewById(R.id.sensor_number);
+        TextView titleView = dialogView.findViewById(R.id.alert_title);
+        TextView descriptionView = dialogView.findViewById(R.id.alert_description);
+
+        if (sensorNumberView != null) sensorNumberView.setText(String.valueOf(sensorNumber));
+        if (titleView != null) titleView.setText(title);
+        if (descriptionView != null) descriptionView.setText(description);
 
         AlertDialog dialog = builder.create();
 
@@ -99,23 +121,50 @@ public class MainActivity extends AppCompatActivity {
 
         acknowledgeBtn.setOnClickListener(v -> {
             Toast.makeText(this, "Alert acknowledged", Toast.LENGTH_SHORT).show();
-            // Add new alert to the list with GOOD state
-            Alert newAlert = new Alert(2, "Sensor no. 2 activated!", "Countermeasures deployed.", "Just now", Alert.STATE_GOOD);
-            recentAlerts.add(0, newAlert);
+            // Create alert with GOOD state
+            Alert newAlert = new Alert(sensorNumber, title, "Countermeasures deployed.", timestamp, Alert.STATE_GOOD);
+            callback.onAlertProcessed(newAlert);
+            loadRecentAlerts(); // Refresh the display
             alertAdapter.notifyDataSetChanged();
             dialog.dismiss();
         });
 
         reportFalseBtn.setOnClickListener(v -> {
             Toast.makeText(this, "Reported as false positive", Toast.LENGTH_SHORT).show();
-            // Add new alert to the list with BAD state
-            Alert newAlert = new Alert(2, "Sensor no. 2 activated!", "Reported as false positive.", "Just now", Alert.STATE_BAD);
-            recentAlerts.add(0, newAlert);
+            // Create alert with BAD state
+            Alert newAlert = new Alert(sensorNumber, title, "Reported as false positive.", timestamp, Alert.STATE_BAD);
+            callback.onAlertProcessed(newAlert);
+            loadRecentAlerts(); // Refresh the display
             alertAdapter.notifyDataSetChanged();
             dialog.dismiss();
         });
 
         dialog.show();
+    }
+
+    // Method to simulate a new alert (for testing)
+    private void simulateNewAlert() {
+        Log.d("MainActivity", "simulateNewAlert() called");
+        String currentTime = new SimpleDateFormat("HH:mm - dd.M.yyyy", Locale.getDefault()).format(new Date());
+
+        // This is the main function you'll call to add alerts with user confirmation
+        alertManager.addAlertWithUserConfirmation(
+                this, // Pass MainActivity instance
+                2,
+                "Sensor no. 2 activated!",
+                "Countermeasures are being deployed this very moment...",
+                currentTime, null
+        );
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Refresh alerts when returning to main activity
+        loadRecentAlerts();
+        if (alertAdapter != null) {
+            alertAdapter.notifyDataSetChanged();
+        }
     }
 
     @Override
