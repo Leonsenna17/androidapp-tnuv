@@ -29,6 +29,17 @@
             android:padding="16dp">
 
             <!-- Map Section -->
+
+            <org.maplibre.android.maps.MapView
+                android:id="@+id/mapView"
+                android:layout_width="match_parent"
+                android:layout_height="200dp"
+                android:background="@color/map_background"
+                android:orientation="vertical"
+                android:padding="5dp"
+                android:layout_marginBottom="16dp" />
+
+            <!--
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="200dp"
@@ -45,7 +56,7 @@
                     android:textSize="16sp"
                     android:layout_gravity="center" />
 
-                <!-- Simulated map markers -->
+
                 <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent">
@@ -109,7 +120,7 @@
 
                 </RelativeLayout>
 
-            </LinearLayout>
+            </LinearLayout> -->
 
             <!-- Recent Alerts Section -->
             <TextView

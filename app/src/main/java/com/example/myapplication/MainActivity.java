@@ -5,22 +5,34 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
+
 import com.google.android.material.navigation.NavigationView;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+
+import org.maplibre.android.MapLibre;
+import org.maplibre.android.annotations.MarkerOptions;
+import org.maplibre.android.camera.CameraPosition;
+import org.maplibre.android.geometry.LatLng;
+import org.maplibre.android.maps.MapLibreMap;
+import org.maplibre.android.maps.MapView;
+import org.maplibre.android.maps.OnMapReadyCallback;
+
 
 public class MainActivity extends AppCompatActivity {
 
@@ -31,11 +43,52 @@ public class MainActivity extends AppCompatActivity {
     private List<Alert> recentAlerts;
     private Button moreButton;
     private AlertManager alertManager;
+    private MapView mapView;
+    private MapLibreMap mapLibreMap;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        MapLibre.getInstance(this);
         setContentView(R.layout.activity_main);
+
+
+        // Inicializacija pogleda z uporabo LayoutInflater
+        LayoutInflater inflater = LayoutInflater.from(this);
+        View rootView = inflater.inflate(R.layout.activity_main, null);
+        setContentView(rootView);
+
+        // Inicializacija MapView
+        mapView = rootView.findViewById(R.id.mapView);
+        mapView.onCreate(savedInstanceState);
+
+        mapView.getMapAsync(new OnMapReadyCallback() {
+            @Override
+            public void onMapReady(MapLibreMap map) {
+                mapLibreMap = map;
+                //mapLibreMap.setStyle("https://demotiles.maplibre.org/style.json");
+                mapLibreMap.setStyle("https://api.maptiler.com/maps/streets/style.json?key=aqhX5FMpQ7uvNvbZtp9r");
+
+                // Začetna pozicija
+                CameraPosition startPosition = new CameraPosition.Builder()
+                        .target(new LatLng(46.0569, 14.5058)) // Ljubljana
+                        .zoom(5.5)
+                        .build();
+                mapLibreMap.setCameraPosition(startPosition);
+
+                // Dodaj oznako ob kliku
+                mapLibreMap.addOnMapClickListener(point -> {
+                    MarkerOptions markerOptions = new MarkerOptions()
+                            .position(point)
+                            .title("Senzor")
+                            .snippet("Dodan ob kliku.");
+
+                    mapLibreMap.addMarker(markerOptions);
+                    return true;
+                });
+            }
+        });
+
 
         // Initialize AlertManager
         alertManager = AlertManager.getInstance(this);
@@ -165,6 +218,7 @@ public class MainActivity extends AppCompatActivity {
         if (alertAdapter != null) {
             alertAdapter.notifyDataSetChanged();
         }
+        mapView.onResume();
     }
 
     @Override
@@ -182,5 +236,41 @@ public class MainActivity extends AppCompatActivity {
         } else {
             super.onBackPressed();
         }
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        mapView.onStart();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        mapView.onPause();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        mapView.onStop();
+    }
+
+    @Override
+    public void onLowMemory() {
+        super.onLowMemory();
+        mapView.onLowMemory();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mapView.onDestroy();
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        mapView.onSaveInstanceState(outState);
     }
 }
