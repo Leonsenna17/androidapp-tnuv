@@ -1,5 +1,6 @@
 package com.example.myapplication;
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
@@ -19,13 +20,24 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.google.android.material.navigation.NavigationView;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.maplibre.android.MapLibre;
+import org.maplibre.android.annotations.IconFactory;
+import org.maplibre.android.annotations.Marker;
 import org.maplibre.android.annotations.MarkerOptions;
 import org.maplibre.android.camera.CameraPosition;
 import org.maplibre.android.geometry.LatLng;
@@ -45,7 +57,30 @@ public class MainActivity extends AppCompatActivity {
     private AlertManager alertManager;
     private MapView mapView;
     private MapLibreMap mapLibreMap;
+    private TextView textView;
+    private TextView podatek;
+    private Handler handler = new Handler();
+    private String lastData = "";
+    private final String CHANNEL_ID = "data_update_channel";
+    List<Marker> markers = new ArrayList<>();
 
+    private final LatLng[] markerPositions = new LatLng[] {
+            new LatLng(46.056946, 14.505751), // Ljubljana
+            new LatLng(46.5547, 15.6459),     // Maribor
+            new LatLng(45.5439, 13.7306),     // Koper
+            new LatLng(46.3588, 15.1106),     // Celje
+            new LatLng(46.1700, 14.1961)      // Kranj
+    };
+
+    private final String[] markerTitles = new String[] {
+            "46.04476",
+            "Maribor",
+            "Koper",
+            "Celje",
+            "Kranj"
+    };
+
+    @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -86,9 +121,19 @@ public class MainActivity extends AppCompatActivity {
                     mapLibreMap.addMarker(markerOptions);
                     return true;
                 });
+
+                // Ustvarjanje markerjev na zemljevidu
+                for (int i = 0; i < markerPositions.length; i++) {
+                    Marker marker = mapLibreMap.addMarker(new MarkerOptions()
+                            .position(markerPositions[i])
+                            .title(markerTitles[i]));
+                    markers.add(marker);
+                }
             }
         });
 
+
+        startRepeatingTask();       // začne zanko za preverjanje sprememb
 
         // Initialize AlertManager
         alertManager = AlertManager.getInstance(this);
@@ -107,6 +152,86 @@ public class MainActivity extends AppCompatActivity {
                 simulateNewAlert();
             }
         }, 3000);
+    }
+
+    private void startRepeatingTask() {
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                fetchData();
+                handler.postDelayed(this, 10000); // ponovi na 10 sekund
+            }
+        }, 0);
+    }
+
+    private void fetchData() {
+        RequestQueue queue = Volley.newRequestQueue(this);
+        String url ="http://lukamali.com/ttn2value/data/70B3D57ED0070838.json";
+
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        handleJson(response);
+                    }
+                }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                // textView.setText("That didn't work!");
+                Log.d("NAPAKA: ", String.valueOf(error));
+            }
+        });
+
+        queue.add(stringRequest);
+    }
+
+    private void handleJson(String response) {
+        try {
+            JSONObject jsonObject = new JSONObject(response);
+            JSONObject jsonObject1 = jsonObject.getJSONObject("uplink_message");
+            JSONObject jsonObject2 = jsonObject1.getJSONObject("decoded_payload");
+            String podatek = jsonObject2.getString("data");
+            String tip = jsonObject2.getString("type");
+
+            JSONObject nekaj = jsonObject2.getJSONObject("data");
+            double kaj = nekaj.getDouble("latitude");
+
+            String cajt = jsonObject.getString("received_at");
+            // Log.d("JSON_RESPONSE", String.valueOf(jsonObject2));
+
+            if (!cajt.equals(lastData)) {
+                lastData = cajt;
+                // textView.setText("Novi podatek sprejet ob: " + cajt);
+
+                //if (tip.equals("alarm")) {
+                if (kaj == 46.04476) {
+                    Log.d("KAJ_JE_PRAVILEN", String.valueOf(kaj));
+                    highlightMarkerByName("Kranj");
+                    // ==================================
+                    // kliči funkcijo za prikaz obvestila
+                    // ==================================
+                }
+                else if (tip.equals("battery")) {
+                    Log.d("NIVO_BATERIJE", podatek);
+                }
+            }
+
+            // textView.setText(podatek);
+        } catch (JSONException e) {
+            // textView.setText("Napaka pri parsiranju: " + e.getMessage());
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void highlightMarkerByName(String name) {
+        for (int i = 0; i < 5; i++) {
+            if (markerTitles[i].equals(name)) {
+                markers.get(i).setIcon(IconFactory.getInstance(this).fromResource(R.drawable.rdeca_oznaka_32));
+            }
+            else {
+                markers.get(i).setIcon(IconFactory.getInstance(this).fromResource(R.drawable.zelena_oznaka_32));
+            }
+        }
     }
 
     private void setupToolbar() {
