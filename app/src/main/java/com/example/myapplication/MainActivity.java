@@ -3,6 +3,7 @@ package com.example.myapplication;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -29,6 +30,7 @@ import com.android.volley.toolbox.Volley;
 import com.google.android.material.navigation.NavigationView;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -65,15 +67,24 @@ public class MainActivity extends AppCompatActivity {
     List<Marker> markers = new ArrayList<>();
 
     private final LatLng[] markerPositions = new LatLng[] {
+            /*
             new LatLng(46.056946, 14.505751), // Ljubljana
             new LatLng(46.5547, 15.6459),     // Maribor
             new LatLng(45.5439, 13.7306),     // Koper
             new LatLng(46.3588, 15.1106),     // Celje
             new LatLng(46.1700, 14.1961)      // Kranj
+
+             */
+
+            new LatLng(46.2500574884723, 14.25815490363353),
+            new LatLng(46.2526102495906, 14.267221466802557),
+            new LatLng(46.24956732745012, 14.269973090984017),
+            new LatLng(46.24946349292436, 14.266346725324173),
+            new LatLng(46.248565712115536, 14.263793266878723)
     };
 
     private final String[] markerTitles = new String[] {
-            "46.04476",
+            "naprava-za-ovce",
             "Maribor",
             "Koper",
             "Celje",
@@ -106,8 +117,8 @@ public class MainActivity extends AppCompatActivity {
 
                 // Začetna pozicija
                 CameraPosition startPosition = new CameraPosition.Builder()
-                        .target(new LatLng(46.0569, 14.5058)) // Ljubljana
-                        .zoom(5.5)
+                        .target(new LatLng(46.24946349292436, 14.266346725324173)) // Ljubljana
+                        .zoom(13.0)
                         .build();
                 mapLibreMap.setCameraPosition(startPosition);
 
@@ -129,6 +140,7 @@ public class MainActivity extends AppCompatActivity {
                             .title(markerTitles[i]));
                     markers.add(marker);
                 }
+                highlightMarkerByName("");
             }
         });
 
@@ -144,6 +156,7 @@ public class MainActivity extends AppCompatActivity {
         loadRecentAlerts();
 
         // Simulate receiving a new alert after 3 seconds
+        /*
         Log.d("MainActivity", "Setting up delayed alert...");
         new Handler().postDelayed(new Runnable() {
             @Override
@@ -152,6 +165,8 @@ public class MainActivity extends AppCompatActivity {
                 simulateNewAlert();
             }
         }, 3000);
+
+         */
     }
 
     private void startRepeatingTask() {
@@ -188,32 +203,33 @@ public class MainActivity extends AppCompatActivity {
     private void handleJson(String response) {
         try {
             JSONObject jsonObject = new JSONObject(response);
-            JSONObject jsonObject1 = jsonObject.getJSONObject("uplink_message");
-            JSONObject jsonObject2 = jsonObject1.getJSONObject("decoded_payload");
-            String podatek = jsonObject2.getString("data");
-            String tip = jsonObject2.getString("type");
+            String cas = jsonObject.getString("received_at");           // čas sprejema
+            JSONObject end_deivce_ids = jsonObject.getJSONObject("end_device_ids");
+            String senzor = end_deivce_ids.getString("device_id");      // ime senzorja
+            JSONObject uplink_message = jsonObject.getJSONObject("uplink_message");
+            JSONObject decoded_payload = uplink_message.getJSONObject("decoded_payload");
+            String tip = decoded_payload.getString("type");             // tip obvestila
 
-            JSONObject nekaj = jsonObject2.getJSONObject("data");
-            double kaj = nekaj.getDouble("latitude");
+            SharedPreferences prefs = getSharedPreferences("app_prefs", MODE_PRIVATE);
+            String lastSavedTime = prefs.getString("last_refresh_time", "");
 
-            String cajt = jsonObject.getString("received_at");
-            // Log.d("JSON_RESPONSE", String.valueOf(jsonObject2));
-
-            if (!cajt.equals(lastData)) {
-                lastData = cajt;
+            if (!cas.equals(lastSavedTime)) {
+                // lastData = cas;
                 // textView.setText("Novi podatek sprejet ob: " + cajt);
 
-                //if (tip.equals("alarm")) {
-                if (kaj == 46.04476) {
-                    Log.d("KAJ_JE_PRAVILEN", String.valueOf(kaj));
-                    highlightMarkerByName("Kranj");
-                    // ==================================
-                    // kliči funkcijo za prikaz obvestila
-                    // ==================================
+                if (tip.equals("alarm")) {
+                    highlightMarkerByName(senzor);
+                    newAlert(Arrays.asList(markerTitles).indexOf(senzor) + 1);
                 }
                 else if (tip.equals("battery")) {
-                    Log.d("NIVO_BATERIJE", podatek);
+                    Log.d("NIVO_BATERIJE", senzor);
+                    highlightMarkerByName("");
                 }
+
+                prefs.edit().putString("last_refresh_time", cas).apply();
+            }
+            else {
+                //highlightMarkerByName("");
             }
 
             // textView.setText(podatek);
@@ -332,6 +348,17 @@ public class MainActivity extends AppCompatActivity {
                 "Sensor no. 2 activated!",
                 "Countermeasures are being deployed this very moment...",
                 currentTime, null
+        );
+    }
+
+    private void newAlert(int st) {
+        String trenutniCas = new SimpleDateFormat("HH:mm - dd.M.yyyy", Locale.getDefault()).format(new Date());
+        alertManager.addAlertWithUserConfirmation(
+                this,
+                st,
+                "Sensor no. " + st + " activated!",
+                "Take action now!",
+                trenutniCas, null
         );
     }
 
