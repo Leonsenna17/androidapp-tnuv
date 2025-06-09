@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:showIn="navigation_view">
+
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_home"
+            android:icon="@drawable/ic_home"
+            android:title="Home" />
+
+        <item
+            android:id="@+id/nav_real_time"
+            android:icon="@drawable/ic_alert"
+            android:title="Real-time Overview" />
+
+        <item
+            android:id="@+id/nav_alerts_history"
+            android:icon="@drawable/ic_history"
+            android:title="Alerts History" />
+
+        <item
+            android:id="@+id/nav_statistics"
+            android:icon="@drawable/ic_statistics"
+            android:title="Statistics" />
+
+        <item
+            android:id="@+id/nav_sensors"
+            android:icon="@drawable/ic_sensors"
+            android:title="Sensors" />
+
+        <item
+            android:id="@+id/nav_settings"
+            android:icon="@drawable/ic_settings"
+            android:title="Settings" />
+
+        <item
+            android:id="@+id/nav_about"
+            android:icon="@drawable/ic_info"
+            android:title="About" />
+    </group>
+
+</menu>
