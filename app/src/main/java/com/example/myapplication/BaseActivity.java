@@ -15,8 +15,8 @@ public abstract class BaseActivity extends AppCompatActivity {
     protected DrawerLayout drawerLayout;
     protected ActionBarDrawerToggle toggle;
     protected Toolbar toolbar;
-    protected ImageView hamburgerMenu;
     protected ImageView backArrow;
+    protected ImageView hamburgerMenu;
 
     protected void setupToolbar(boolean isHomeActivity) {
         toolbar = findViewById(R.id.toolbar);
@@ -27,18 +27,24 @@ public abstract class BaseActivity extends AppCompatActivity {
             getSupportActionBar().setDisplayShowTitleEnabled(false);
         }
         
-        hamburgerMenu = toolbar.findViewById(R.id.hamburger_menu);
         backArrow = toolbar.findViewById(R.id.back_arrow);
+        hamburgerMenu = toolbar.findViewById(R.id.hamburger_menu);
+
+        hamburgerMenu.setVisibility(View.VISIBLE);
+        hamburgerMenu.setOnClickListener(v -> {
+            if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
+                drawerLayout.closeDrawer(GravityCompat.START);
+            } else {
+                drawerLayout.openDrawer(GravityCompat.START);
+            }
+        });
 
         if (isHomeActivity) {
-            // Show hamburger, hide back arrow for home
-            hamburgerMenu.setVisibility(View.VISIBLE);
+            // Hide back arrow for home activity
             backArrow.setVisibility(View.GONE);
         } else {
-            // Show back arrow, hide hamburger for other activities
-            hamburgerMenu.setVisibility(View.GONE);
+            // Show back arrow for other activities
             backArrow.setVisibility(View.VISIBLE);
-
             backArrow.setOnClickListener(v -> navigateToHome());
         }
     }
@@ -49,27 +55,38 @@ public abstract class BaseActivity extends AppCompatActivity {
         if (drawerLayout != null) {
             NavigationView navigationView = findViewById(R.id.nav_view);
 
-            toggle = new ActionBarDrawerToggle(
-                    this, drawerLayout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-            drawerLayout.addDrawerListener(toggle);
-            toggle.syncState();
-
-            // Setup hamburger menu click for home activity
-            if (hamburgerMenu.getVisibility() == View.VISIBLE) {
-                hamburgerMenu.setOnClickListener(v -> {
-                    if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
-                        drawerLayout.closeDrawer(GravityCompat.START);
-                    } else {
-                        drawerLayout.openDrawer(GravityCompat.START);
-                    }
-                });
-            }
+            highlightCurrentActivity(navigationView);
 
             navigationView.setNavigationItemSelectedListener(item -> {
                 handleNavigationItemSelected(item.getItemId());
                 drawerLayout.closeDrawer(GravityCompat.START);
                 return true;
             });
+        }
+    }
+
+    protected void highlightCurrentActivity(NavigationView navigationView) {
+        String currentActivity = this.getClass().getSimpleName();
+        
+        switch (currentActivity) {
+            case "HomeActivity":
+                navigationView.setCheckedItem(R.id.nav_home);
+                break;
+            case "MainActivity":
+                navigationView.setCheckedItem(R.id.nav_real_time);
+                break;
+            case "AlertsHistoryActivity":
+                navigationView.setCheckedItem(R.id.nav_alerts_history);
+                break;
+            case "StatisticsActivity":
+                navigationView.setCheckedItem(R.id.nav_statistics);
+                break;
+            case "SensorsActivity":
+                navigationView.setCheckedItem(R.id.nav_sensors);
+                break;
+            case "SettingsActivity":
+                navigationView.setCheckedItem(R.id.nav_settings);
+                break;
         }
     }
 

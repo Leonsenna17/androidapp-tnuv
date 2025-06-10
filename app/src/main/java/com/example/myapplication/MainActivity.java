@@ -143,7 +143,7 @@ public class MainActivity extends BaseActivity {
         });
 
 
-        startRepeatingTask();       // začne zanko za preverjanje sprememb
+        startRepeatingTask();
 
         // Initialize AlertManager
         alertManager = AlertManager.getInstance(this);
@@ -152,19 +152,6 @@ public class MainActivity extends BaseActivity {
         setupDrawer();
         setupViews();
         loadRecentAlerts();
-
-        // Simulate receiving a new alert after 3 seconds
-        /*
-        Log.d("MainActivity", "Setting up delayed alert...");
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                Log.d("MainActivity", "Showing simulated alert now...");
-                simulateNewAlert();
-            }
-        }, 3000);
-
-         */
     }
 
     private void startRepeatingTask() {

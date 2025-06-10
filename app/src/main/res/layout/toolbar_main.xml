@@ -14,7 +14,7 @@
         android:layout_height="match_parent"
         android:layout_marginEnd="16dp">
 
-        <!-- Hamburger Menu Icon (Left) -->
+        <!-- Hamburger Menu Icon (Left) - for non-home activities -->
         <ImageView
             android:id="@+id/hamburger_menu"
             android:layout_width="64dp"
@@ -26,6 +26,7 @@
             android:contentDescription="Menu"
             android:padding="8dp"
             android:src="@drawable/ic_menu"
+            android:visibility="gone"
             app:tint="@color/white" />
 
         <!-- App Name and Icon (Center) -->

@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Toast;
 import androidx.cardview.widget.CardView;
+import com.google.android.material.navigation.NavigationView;
 
 public class HomeActivity extends BaseActivity {
 
@@ -15,6 +16,18 @@ public class HomeActivity extends BaseActivity {
         setupToolbar(true); // true = is home activity
         setupDrawer();
         setupClickListeners();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Reset navigation highlighting when returning to home
+        if (drawerLayout != null) {
+            NavigationView navigationView = findViewById(R.id.nav_view);
+            if (navigationView != null) {
+                navigationView.setCheckedItem(R.id.nav_home);
+            }
+        }
     }
 
     private void setupClickListeners() {

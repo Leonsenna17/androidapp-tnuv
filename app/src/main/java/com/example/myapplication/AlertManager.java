@@ -117,7 +117,6 @@ public class AlertManager {
         saveAlerts();
     }
 
-    // Clear all alerts (utility method)
     public void clearAllAlerts() {
         alerts.clear();
         saveAlerts();
