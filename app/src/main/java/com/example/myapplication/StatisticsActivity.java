@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-public class StatisticsActivity extends AppCompatActivity {
+public class StatisticsActivity extends BaseActivity {
 
     private TextView totalAlertsText;
     private TextView todayAlertsText;
@@ -33,19 +33,12 @@ public class StatisticsActivity extends AppCompatActivity {
 
         alertManager = AlertManager.getInstance(this);
 
-        setupToolbar();
+        setupToolbar(false); // false = not home activity
+        setupDrawer();
         setupViews();
         loadStatistics();
     }
 
-    private void setupToolbar() {
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setTitle("Statistics");
-        }
-    }
 
     private void setupViews() {
         totalAlertsText = findViewById(R.id.tv_total_alerts);

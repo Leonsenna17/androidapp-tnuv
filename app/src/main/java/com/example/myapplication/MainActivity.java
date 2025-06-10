@@ -48,10 +48,8 @@ import org.maplibre.android.maps.MapView;
 import org.maplibre.android.maps.OnMapReadyCallback;
 
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends BaseActivity {
 
-    private DrawerLayout drawerLayout;
-    private ActionBarDrawerToggle toggle;
     private ListView alertsListView;
     private AlertAdapter alertAdapter;
     private List<Alert> recentAlerts;
@@ -150,7 +148,7 @@ public class MainActivity extends AppCompatActivity {
         // Initialize AlertManager
         alertManager = AlertManager.getInstance(this);
 
-        setupToolbar();
+        setupToolbar(false); // false = not home activity
         setupDrawer();
         setupViews();
         loadRecentAlerts();
@@ -250,30 +248,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void setupToolbar() {
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setTitle("SheepDistressApp");
-        }
-    }
-
-    private void setupDrawer() {
-        drawerLayout = findViewById(R.id.drawer_layout);
-        NavigationView navigationView = findViewById(R.id.nav_view);
-
-        toggle = new ActionBarDrawerToggle(
-                this, drawerLayout, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawerLayout.addDrawerListener(toggle);
-        toggle.syncState();
-
-        navigationView.setNavigationItemSelectedListener(item -> {
-            // Handle navigation view item clicks here
-            drawerLayout.closeDrawer(GravityCompat.START);
-            return true;
-        });
-    }
 
     private void setupViews() {
         alertsListView = findViewById(R.id.alerts_list_view);

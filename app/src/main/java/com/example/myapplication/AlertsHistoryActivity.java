@@ -8,7 +8,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import java.util.List;
 
-public class AlertsHistoryActivity extends AppCompatActivity {
+public class AlertsHistoryActivity extends BaseActivity {
 
     private ListView historyListView;
     private AlertHistoryAdapter historyAdapter;
@@ -23,19 +23,12 @@ public class AlertsHistoryActivity extends AppCompatActivity {
         // Initialize AlertManager
         alertManager = AlertManager.getInstance(this);
 
-        setupToolbar();
+        setupToolbar(false); // false = not home activity
+        setupDrawer();
         setupViews();
         loadAlertsHistory();
     }
 
-    private void setupToolbar() {
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setTitle("Alerts History");
-        }
-    }
 
     private void setupViews() {
         historyListView = findViewById(R.id.history_list_view);

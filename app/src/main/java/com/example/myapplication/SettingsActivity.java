@@ -22,6 +22,7 @@ public class SettingsActivity extends BaseActivity {
         alertManager = AlertManager.getInstance(this);
 
         setupToolbar(false); // false = not home activity
+        setupDrawer();
         setupViews();
         setupClickListeners();
     }

@@ -26,6 +26,8 @@ public abstract class BaseActivity extends AppCompatActivity {
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayShowTitleEnabled(false);
         }
+        
+        hamburgerMenu = toolbar.findViewById(R.id.hamburger_menu);
         backArrow = toolbar.findViewById(R.id.back_arrow);
 
         if (isHomeActivity) {
