@@ -1,6 +1,7 @@
 package com.example.myapplication;
 
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.widget.Toast;
 import androidx.cardview.widget.CardView;
@@ -16,6 +17,13 @@ public class HomeActivity extends BaseActivity {
         setupToolbar(true); // true = is home activity
         setupDrawer();
         setupClickListeners();
+
+        Intent serviceIntent = new Intent(this, NotificationService.class);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(serviceIntent);
+        } else {
+            startService(serviceIntent);
+        }
     }
 
     @Override

@@ -2,8 +2,11 @@ package com.example.myapplication;
 
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
+import android.content.IntentFilter;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -15,28 +18,14 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.appcompat.app.ActionBarDrawerToggle;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
-import androidx.drawerlayout.widget.DrawerLayout;
 
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
-import com.google.android.material.navigation.NavigationView;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.maplibre.android.MapLibre;
 import org.maplibre.android.annotations.IconFactory;
 import org.maplibre.android.annotations.Marker;
@@ -64,16 +53,7 @@ public class MainActivity extends BaseActivity {
     private final String CHANNEL_ID = "data_update_channel";
     List<Marker> markers = new ArrayList<>();
 
-    private final LatLng[] markerPositions = new LatLng[] {
-            /*
-            new LatLng(46.056946, 14.505751), // Ljubljana
-            new LatLng(46.5547, 15.6459),     // Maribor
-            new LatLng(45.5439, 13.7306),     // Koper
-            new LatLng(46.3588, 15.1106),     // Celje
-            new LatLng(46.1700, 14.1961)      // Kranj
-
-             */
-
+    private LatLng[] markerPositions = new LatLng[] {
             new LatLng(46.2500574884723, 14.25815490363353),
             new LatLng(46.2526102495906, 14.267221466802557),
             new LatLng(46.24956732745012, 14.269973090984017),
@@ -95,6 +75,9 @@ public class MainActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
         MapLibre.getInstance(this);
         setContentView(R.layout.activity_main);
+
+        String receivedText = getIntent().getStringExtra("dodana_oznaka");
+        // dodaj oznako
 
 
         // Inicializacija pogleda z uporabo LayoutInflater
@@ -142,8 +125,14 @@ public class MainActivity extends BaseActivity {
             }
         });
 
-
-        startRepeatingTask();
+        /* if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(MainActivity.this,
+                    Manifest.permission.POST_NOTIFICATIONS) !=
+                    PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(MainActivity.this,
+                        new String[] {Manifest.permission.POST_NOTIFICATIONS}, 101);
+            }
+        } */
 
         // Initialize AlertManager
         alertManager = AlertManager.getInstance(this);
@@ -154,77 +143,7 @@ public class MainActivity extends BaseActivity {
         loadRecentAlerts();
     }
 
-    private void startRepeatingTask() {
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                fetchData();
-                handler.postDelayed(this, 10000); // ponovi na 10 sekund
-            }
-        }, 0);
-    }
-
-    private void fetchData() {
-        RequestQueue queue = Volley.newRequestQueue(this);
-        String url ="http://lukamali.com/ttn2value/data/70B3D57ED0070838.json";
-
-        StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
-                new Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String response) {
-                        handleJson(response);
-                    }
-                }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                // textView.setText("That didn't work!");
-                Log.d("NAPAKA: ", String.valueOf(error));
-            }
-        });
-
-        queue.add(stringRequest);
-    }
-
-    private void handleJson(String response) {
-        try {
-            JSONObject jsonObject = new JSONObject(response);
-            String cas = jsonObject.getString("received_at");           // čas sprejema
-            JSONObject end_deivce_ids = jsonObject.getJSONObject("end_device_ids");
-            String senzor = end_deivce_ids.getString("device_id");      // ime senzorja
-            JSONObject uplink_message = jsonObject.getJSONObject("uplink_message");
-            JSONObject decoded_payload = uplink_message.getJSONObject("decoded_payload");
-            String tip = decoded_payload.getString("type");             // tip obvestila
-
-            SharedPreferences prefs = getSharedPreferences("app_prefs", MODE_PRIVATE);
-            String lastSavedTime = prefs.getString("last_refresh_time", "");
-
-            if (!cas.equals(lastSavedTime)) {
-                // lastData = cas;
-                // textView.setText("Novi podatek sprejet ob: " + cajt);
-
-                if (tip.equals("alarm")) {
-                    highlightMarkerByName(senzor);
-                    newAlert(Arrays.asList(markerTitles).indexOf(senzor) + 1);
-                }
-                else if (tip.equals("battery")) {
-                    Log.d("NIVO_BATERIJE", senzor);
-                    highlightMarkerByName("");
-                }
-
-                prefs.edit().putString("last_refresh_time", cas).apply();
-            }
-            else {
-                //highlightMarkerByName("");
-            }
-
-            // textView.setText(podatek);
-        } catch (JSONException e) {
-            // textView.setText("Napaka pri parsiranju: " + e.getMessage());
-            throw new RuntimeException(e);
-        }
-    }
-
-    private void highlightMarkerByName(String name) {
+    public void highlightMarkerByName(String name) {
         for (int i = 0; i < 5; i++) {
             if (markerTitles[i].equals(name)) {
                 markers.get(i).setIcon(IconFactory.getInstance(this).fromResource(R.drawable.rdeca_oznaka_32));
@@ -234,6 +153,14 @@ public class MainActivity extends BaseActivity {
             }
         }
     }
+
+    private BroadcastReceiver jsonUpdateReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String senzor = intent.getStringExtra("marker");
+            highlightMarkerByName(senzor);
+        }
+    };
 
 
     private void setupViews() {
@@ -332,6 +259,15 @@ public class MainActivity extends BaseActivity {
             alertAdapter.notifyDataSetChanged();
         }
         mapView.onResume();
+        IntentFilter filter = new IntentFilter("com.example.JSON_UPDATED");
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(jsonUpdateReceiver, new IntentFilter("com.example.JSON_UPDATED"), Context.RECEIVER_NOT_EXPORTED);
+        } else {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                registerReceiver(jsonUpdateReceiver, filter, Context.RECEIVER_EXPORTED);
+            }
+        }
+
     }
 
     @Override
@@ -367,6 +303,7 @@ public class MainActivity extends BaseActivity {
     protected void onPause() {
         super.onPause();
         mapView.onPause();
+        unregisterReceiver(jsonUpdateReceiver);
     }
 
     @Override
