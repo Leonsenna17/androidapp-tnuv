@@ -115,6 +115,11 @@ public class NotificationService extends Service {
                 if (tip.equals("alarm")) {
                     showUpdateNotification(senzor);
 
+                    Intent intent2 = new Intent("com.example.myapplication.ACTION_FROM_SERVICE");
+                    intent2.putExtra("st_senzorja", senzor);
+                    sendBroadcast(intent2);
+
+
                     intent.putExtra("marker", senzor);
                     sendBroadcast(intent);
 
@@ -181,6 +186,12 @@ public class NotificationService extends Service {
 
         Intent intent = new Intent(this, MainActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        // intent.putExtra("marker", senzor);
+
+        Intent posebenIntent = new Intent("com.example.JSON_UPDATED");
+        posebenIntent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        posebenIntent.putExtra("marker", senzor);
+        sendBroadcast(posebenIntent);
 
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_IMMUTABLE);
 

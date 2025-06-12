@@ -16,7 +16,7 @@ public class SensorsActivity extends BaseActivity {
 
     private EditText etInput;
     private Button btnSave;
-    private String localVariable;  // tu bo shranjen vnos
+    private String localVariable;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

@@ -1,9 +1,14 @@
 package com.example.myapplication;
 
 import android.app.AlertDialog;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.Toast;
+
+import androidx.core.content.ContextCompat;
+
 import com.google.android.material.switchmaterial.SwitchMaterial;
 
 public class SettingsActivity extends BaseActivity {
@@ -23,15 +28,17 @@ public class SettingsActivity extends BaseActivity {
 
         setupToolbar(false); // false = not home activity
         setupDrawer();
-        setupViews();
-        setupClickListeners();
-    }
 
-    private void setupViews() {
         notificationsSwitch = findViewById(R.id.switch_notifications);
         soundSwitch = findViewById(R.id.switch_sound);
         clearAlertsButton = findViewById(R.id.btn_clear_alerts);
         exportDataButton = findViewById(R.id.btn_export_data);
+
+        SharedPreferences prefs = getSharedPreferences("settings", MODE_PRIVATE);
+        boolean savedState = prefs.getBoolean("service_enabled", false);
+        notificationsSwitch.setChecked(savedState);
+
+        setupClickListeners();
     }
 
     private void setupClickListeners() {
@@ -43,6 +50,15 @@ public class SettingsActivity extends BaseActivity {
 
         notificationsSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
             Toast.makeText(this, "Notifications " + (isChecked ? "enabled" : "disabled"), Toast.LENGTH_SHORT).show();
+
+            SharedPreferences prefs = getSharedPreferences("settings", MODE_PRIVATE);
+            prefs.edit().putBoolean("service_enabled", isChecked).apply();
+            Intent serviceIntent = new Intent(this, NotificationService.class);
+            if (isChecked) {
+                ContextCompat.startForegroundService(this, serviceIntent);
+            } else {
+                stopService(serviceIntent);
+            }
         });
 
         soundSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {

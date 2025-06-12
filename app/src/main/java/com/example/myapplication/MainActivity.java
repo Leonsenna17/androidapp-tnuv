@@ -162,6 +162,15 @@ public class MainActivity extends BaseActivity {
         }
     };
 
+    private final BroadcastReceiver serviceReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String ime_senzorja = intent.getStringExtra("st_senzorja");
+            int primer = 2;
+            newAlert(primer);
+        }
+    };
+
 
     private void setupViews() {
         alertsListView = findViewById(R.id.alerts_list_view);
@@ -239,7 +248,7 @@ public class MainActivity extends BaseActivity {
         );
     }
 
-    private void newAlert(int st) {
+    public void newAlert(int st) {
         String trenutniCas = new SimpleDateFormat("HH:mm - dd.M.yyyy", Locale.getDefault()).format(new Date());
         alertManager.addAlertWithUserConfirmation(
                 this,
@@ -250,6 +259,7 @@ public class MainActivity extends BaseActivity {
         );
     }
 
+    @SuppressLint("UnspecifiedRegisterReceiverFlag")
     @Override
     protected void onResume() {
         super.onResume();
@@ -267,6 +277,7 @@ public class MainActivity extends BaseActivity {
                 registerReceiver(jsonUpdateReceiver, filter, Context.RECEIVER_EXPORTED);
             }
         }
+        registerReceiver(serviceReceiver, new IntentFilter("com.example.myapplication.ACTION_FROM_SERVICE"));
 
     }
 
@@ -304,6 +315,7 @@ public class MainActivity extends BaseActivity {
         super.onPause();
         mapView.onPause();
         unregisterReceiver(jsonUpdateReceiver);
+        unregisterReceiver(serviceReceiver);
     }
 
     @Override
